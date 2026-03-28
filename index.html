@@ -519,13 +519,17 @@ function renderRecursos() {
     return;
   }
   el.innerHTML = recursosData.map((r, i) => {
-    const pct = Math.round((r.usado / r.total) * 100);
+    const pct = Math.min(100, Math.round((r.usado / r.total) * 100));
     const color = pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : COLORES[i % COLORES.length];
     return `
     <div class="resource-item">
       <div class="resource-header">
         <span class="resource-name">${r.nombre}</span>
-        <span class="resource-vals">${r.usado} / ${r.total} (${pct}%)</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="resource-vals">${r.usado} / ${r.total} (${pct}%)</span>
+          <span style="color:var(--text2);cursor:pointer;font-size:13px" onclick="editRecurso('${r.id}','${r.nombre}',${r.usado},${r.total})">✏️</span>
+          <span style="color:var(--text3);cursor:pointer;font-size:15px" onclick="delRecurso('${r.id}')">×</span>
+        </div>
       </div>
       <div class="resource-bar">
         <div class="resource-fill" style="width:${pct}%;background:${color}"></div>
@@ -541,6 +545,25 @@ window.addRecurso = async function() {
   if (isNaN(total)) return;
   const usado = parseFloat(prompt('Cantidad usada (0 para empezar):') || '0');
   await addDoc(collection(db, RECURSOS), { nombre, total, usado: isNaN(usado) ? 0 : usado, creado: Date.now() });
+};
+
+window.editRecurso = async function(id, nombre, usado, total) {
+  const nuevoNombre = prompt('Nombre del recurso:', nombre);
+  if (nuevoNombre === null) return;
+  const nuevoTotal = parseFloat(prompt('Cantidad total:', total));
+  if (isNaN(nuevoTotal)) return;
+  const nuevoUsado = parseFloat(prompt('Cantidad usada:', usado));
+  if (isNaN(nuevoUsado)) return;
+  await updateDoc(doc(db, RECURSOS, id), {
+    nombre: nuevoNombre.trim() || nombre,
+    total: nuevoTotal,
+    usado: nuevoUsado
+  });
+};
+
+window.delRecurso = async function(id) {
+  if (!confirm('¿Eliminar este recurso?')) return;
+  await deleteDoc(doc(db, RECURSOS, id));
 };
 
 // ══════════════════════════════
