@@ -230,6 +230,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
         <div id="lista-eventos"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
         <div class="input-wrap" style="margin-top:14px; flex-wrap:wrap; gap:6px;">
           <input type="date" id="nuevo-evento-fecha" style="flex:none;width:140px;">
+          <input type="time" id="nuevo-evento-hora" style="flex:none;width:100px;">
           <input id="nuevo-evento-desc" placeholder="Descripción..." style="min-width:0; flex:1;" onkeydown="if(event.key==='Enter')addEvento()">
           <button class="btn-add" onclick="addEvento()">+</button>
         </div>
@@ -462,7 +463,7 @@ function renderEventos() {
       <div class="event-dot" style="background:${COLORES[i % COLORES.length]}"></div>
       <div class="event-info">
         <p>${e.desc}</p>
-        <span>${e.fecha || ''}</span>
+        <span>${e.fecha || ''}${e.hora ? ' · ' + e.hora : ''}</span>
       </div>
       <span style="color:var(--text3);cursor:pointer;padding:4px;font-size:16px" onclick="delEvento('${e.id}')">×</span>
     </div>`).join('');
@@ -470,10 +471,12 @@ function renderEventos() {
 
 window.addEvento = async function() {
   const fecha = document.getElementById('nuevo-evento-fecha').value;
+  const hora = document.getElementById('nuevo-evento-hora').value;
   const desc = document.getElementById('nuevo-evento-desc').value.trim();
   if (!desc) return;
-  await addDoc(collection(db, EVENTOS), { desc, fecha: fecha || hoyStr, creado: Date.now() });
+  await addDoc(collection(db, EVENTOS), { desc, fecha: fecha || hoyStr, hora: hora || '', creado: Date.now() });
   document.getElementById('nuevo-evento-desc').value = '';
+  document.getElementById('nuevo-evento-hora').value = '';
 };
 
 window.delEvento = async function(id) {
